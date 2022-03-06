@@ -1,0 +1,66 @@
+openapi: 3.0.0
+info:
+  description: Optional multiline or single-line description in [CommonMark](http://commonmark.org/help/)
+    or HTML.
+  title: Sample API
+  version: 0.1.9
+servers:
+- description: Optional server description, e.g. Main (production) server
+  url: http://api.example.com/v1
+- description: Optional server description, e.g. Internal staging server for testing
+  url: http://staging-api.example.com
+paths:
+  /users:
+    post:
+      description: Optional extended description in CommonMark or HTML.
+      operationId: users_post
+      requestBody:
+        $ref: '#/components/requestBodies/inline_object'
+        content:
+          application/json:
+            schema:
+              properties:
+                username:
+                  title: username
+                  type: string
+              title: inline_object
+              type: object
+        required: true
+        x-body-name: body
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+          description: A JSON array of user names
+      summary: Returns a list of users.
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+      x-codegen-request-body-name: body
+components:
+  requestBodies:
+    inline_object:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/inline_object'
+      required: true
+  schemas:
+    inline_object:
+      properties:
+        username:
+          title: username
+          type: string
+      title: inline_object
+      type: object
+    inline_response_200:
+      example:
+        name: name
+      properties:
+        name:
+          title: name
+          type: string
+      required:
+      - name
+      title: inline_response_200
+      type: object
