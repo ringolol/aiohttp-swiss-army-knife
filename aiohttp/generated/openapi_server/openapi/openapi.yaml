@@ -6,24 +6,33 @@ info:
   version: 0.1.9
 servers:
 - description: Optional server description, e.g. Main (production) server
-  url: http://api.example.com/v1
-- description: Optional server description, e.g. Internal staging server for testing
-  url: http://staging-api.example.com
+  url: http://api.example.com/api
 paths:
-  /users:
+  /ping:
+    get:
+      operationId: ping
+      responses:
+        "200":
+          description: OK
+      tags:
+      - ping
+      x-openapi-router-controller: openapi_server.controllers.ping_controller
+  /v1/users:
     post:
       description: Optional extended description in CommonMark or HTML.
-      operationId: users_post
+      operationId: create_users
       requestBody:
-        $ref: '#/components/requestBodies/inline_object'
+        $ref: '#/components/requestBodies/UsersRequest'
         content:
           application/json:
             schema:
+              example:
+                username: username
               properties:
                 username:
                   title: username
                   type: string
-              title: inline_object
+              title: UsersRequest
               type: object
         required: true
         x-body-name: body
@@ -32,28 +41,35 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_200'
+                $ref: '#/components/schemas/UsersResponse'
           description: A JSON array of user names
       summary: Returns a list of users.
-      x-openapi-router-controller: openapi_server.controllers.default_controller
+      tags:
+      - create_users
+      x-openapi-router-controller: openapi_server.controllers.create_users_controller
       x-codegen-request-body-name: body
 components:
   requestBodies:
-    inline_object:
+    UsersRequest:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/inline_object'
+            $ref: '#/components/schemas/UsersRequest'
       required: true
   schemas:
-    inline_object:
+    UserName:
+      title: username
+      type: string
+    UsersRequest:
+      example:
+        username: username
       properties:
         username:
           title: username
           type: string
-      title: inline_object
+      title: UsersRequest
       type: object
-    inline_response_200:
+    UsersResponse:
       example:
         name: name
       properties:
@@ -62,5 +78,5 @@ components:
           type: string
       required:
       - name
-      title: inline_response_200
+      title: UsersResponse
       type: object
