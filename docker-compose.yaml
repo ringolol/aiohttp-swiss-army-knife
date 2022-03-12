@@ -3,17 +3,18 @@ version: '3.7'
 services:
   web:
     build: ./aiohttp
-    command: gunicorn --chdir generated openapi_server.app_factory:app_factory --bind 0.0.0.0:8000 --worker-class aiohttp.GunicornWebWorker
+    command: gunicorn --workers=${GUNICORN_WORKERS} --chdir generated openapi_server.app_factory:app_factory --bind 0.0.0.0:8000 --worker-class aiohttp.GunicornWebWorker
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - celery_volume:/code/celery/celery_main
       - aiohttp_volume:/code/generated
     expose:
       - 8000
-    env_file:
-      - ./.env.prod
     depends_on:
       - celery
+      - db
+    env_file:
+      - .env.prod
   nginx:
     build: ./nginx
     ports:
@@ -26,32 +27,31 @@ services:
       - 5672:5672
   celery:
     build: ./celery
-    command: celery -A celery_main worker --concurrency=10 -l INFO
+    command: celery -A celery_main worker --concurrency=${CELERY_CONCURENCY} -l INFO
     tty: true
     depends_on:
       - rabbitmq
+      - db
     volumes:
       - celery_volume:/code/celery_main
+    env_file:
+      - .env.prod
   celery-beat:
     build: ./celery
     command: celery -A celery_main beat -l INFO
     tty: true
     depends_on:
-      - rabbitmq
+      - celery
     volumes:
       - celery_volume:/code/celery_main
   db:
     image: postgres
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
-      - ./.env.prod.db
-
+      - .env.prod.db
 
 volumes:
   celery_volume:
   aiohttp_volume:
+  postgres_data:
