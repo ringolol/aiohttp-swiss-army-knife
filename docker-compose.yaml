@@ -28,7 +28,6 @@ services:
   celery:
     build: ./celery
     command: celery -A celery_main worker --concurrency=${CELERY_CONCURENCY} -l INFO
-    tty: true
     depends_on:
       - rabbitmq
       - db
@@ -39,7 +38,6 @@ services:
   celery-beat:
     build: ./celery
     command: celery -A celery_main beat -l INFO
-    tty: true
     depends_on:
       - celery
     volumes:
