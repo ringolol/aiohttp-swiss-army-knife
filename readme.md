@@ -21,5 +21,5 @@ sudo docker-compose down -v --rmi 'all'
 
 ### Generate
 ```bash
-openapi-generator-cli generate -g python-aiohttp -i docs/api/api.yaml  -o generated
+openapi-generator-cli generate -g python-aiohttp -i aiohttp/docs/api/api.yaml -o aiohttp/generated
 ```
