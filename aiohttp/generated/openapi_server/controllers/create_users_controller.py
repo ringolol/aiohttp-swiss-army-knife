@@ -1,5 +1,7 @@
 from typing import List, Dict
 from aiohttp import web
+import asyncpg
+
 from celery_main import tasks
 
 from openapi_server.models.users_request import UsersRequest
@@ -16,6 +18,9 @@ async def create_users(request: web.Request, body) -> web.Response:
     :type body: dict | bytes
 
     """
+    async with request.config_dict['pool'].acquire() as conn:
+        conn: asyncpg.Connection
+        num = await conn.fetchval('select 5')
     body = UsersRequest.from_dict(body)
-    res = tasks.add.delay(4, 4).wait()
-    return web.json_response(status=200, data=UsersResponse(name=body.username + str(res)).to_dict())
+    tasks.add.delay(num, num)
+    return web.json_response(status=200, data=UsersResponse(name=body.username + str(num)).to_dict())

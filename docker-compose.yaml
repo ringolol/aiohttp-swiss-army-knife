@@ -1,8 +1,9 @@
-version: '3.7'
+version: '3.8'
 
 services:
   web:
     build: ./aiohttp
+    restart: always
     command: gunicorn --workers=${GUNICORN_WORKERS} --chdir generated openapi_server.app_factory:app_factory --bind 0.0.0.0:8000 --worker-class aiohttp.GunicornWebWorker
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -15,19 +16,53 @@ services:
       - db
     env_file:
       - .env.prod
+      - .env.prod.db
   nginx:
     build: ./nginx
+    restart: always
     ports:
       - 80:80
     depends_on:
       - web
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:3.9
     ports:
       - 5672:5672
+  # dramatiq:
+  #   build: ./dramatiq
+  #   restart: always
+  #   command: dramatiq -v celery_main # --log-file /tmp/dramatiq.log
+  #   # command: dramatiq-gevent celery_main -p 8 -t 250
+  #   depends_on:
+  #     - rabbitmq
+  #     - db
+  #   volumes:
+  #     - celery_volume:/code/celery_main
+  #   env_file:
+  #     - .env.prod
+  #     - .env.prod.db
+  # scheduler:
+  #   build: ./dramatiq
+  #   restart: always
+  #   command: python -m celery_main.tasks
+  #   depends_on:
+  #     - dramatiq
+  #   volumes:
+  #     - celery_volume:/code/celery_main
+  #   env_file:
+  #     - .env.prod
+  #     - .env.prod.db
+  db:
+    image: postgres:14
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - .env.prod.db
   celery:
     build: ./celery
-    command: celery -A celery_main worker --concurrency=${CELERY_CONCURENCY} -l INFO
+    restart: always
+    command: celery -A celery_main worker --uid=celery --concurrency=${CELERY_CONCURENCY} -l INFO
     depends_on:
       - rabbitmq
       - db
@@ -35,19 +70,15 @@ services:
       - celery_volume:/code/celery_main
     env_file:
       - .env.prod
+      - .env.prod.db
   celery-beat:
     build: ./celery
+    restart: always
     command: celery -A celery_main beat -l INFO
     depends_on:
       - celery
     volumes:
       - celery_volume:/code/celery_main
-  db:
-    image: postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    env_file:
-      - .env.prod.db
 
 volumes:
   celery_volume:

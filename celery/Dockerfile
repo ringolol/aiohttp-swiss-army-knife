@@ -1,4 +1,4 @@
-FROM python:3.8.3-alpine
+FROM python:3.10-alpine
 
 WORKDIR /code
 
@@ -7,6 +7,9 @@ ENV PYTHONUNBUFFERED 1
 
 RUN apk --update --upgrade add postgresql-dev python3-dev gcc musl-dev jpeg-dev zlib-dev libffi-dev cairo-dev pango-dev gdk-pixbuf-dev
 RUN apk add build-base
+
+RUN addgroup -S celery && adduser -S celery -G celery
+# USER celery
 
 COPY requirements.txt .
 RUN pip install --upgrade pip

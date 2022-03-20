@@ -1,2 +1,2 @@
-def run():
+async def run():
     print('ping')
