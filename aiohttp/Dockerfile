@@ -18,6 +18,6 @@ RUN pip install -r generated/requirements.txt
 
 COPY . .
 
-ENV PYTHONPATH "/code/celery"
+ENV PYTHONPATH "/code/dramatiq"
 
 RUN apk update

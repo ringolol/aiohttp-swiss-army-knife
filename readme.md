@@ -4,7 +4,7 @@
 
 ### Run
 ```bash
-sudo docker-compose up --build --force-recreate --scale celery=2
+sudo docker-compose up --build --force-recreate --scale dramatiq=2
 ```
 
 ### Clean-up

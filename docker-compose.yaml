@@ -7,12 +7,12 @@ services:
     command: gunicorn --workers=${GUNICORN_WORKERS} --chdir generated openapi_server.app_factory:app_factory --bind 0.0.0.0:8000 --worker-class aiohttp.GunicornWebWorker
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - celery_volume:/code/celery/celery_main
+      - dramatiq_volume:/code/dramatiq/dramatiq_tasks
       - aiohttp_volume:/code/generated
     expose:
       - 8000
     depends_on:
-      - celery
+      - dramatiq
       - db
     env_file:
       - .env.prod
@@ -28,30 +28,30 @@ services:
     image: rabbitmq:3.9
     ports:
       - 5672:5672
-  # dramatiq:
-  #   build: ./dramatiq
-  #   restart: always
-  #   command: dramatiq -v celery_main # --log-file /tmp/dramatiq.log
-  #   # command: dramatiq-gevent celery_main -p 8 -t 250
-  #   depends_on:
-  #     - rabbitmq
-  #     - db
-  #   volumes:
-  #     - celery_volume:/code/celery_main
-  #   env_file:
-  #     - .env.prod
-  #     - .env.prod.db
-  # scheduler:
-  #   build: ./dramatiq
-  #   restart: always
-  #   command: python -m celery_main.tasks
-  #   depends_on:
-  #     - dramatiq
-  #   volumes:
-  #     - celery_volume:/code/celery_main
-  #   env_file:
-  #     - .env.prod
-  #     - .env.prod.db
+  dramatiq:
+    build: ./dramatiq
+    restart: always
+    command: dramatiq dramatiq_tasks.tasks #--log-file /tmp/dramatiq.log
+    # command: dramatiq-gevent dramatiq_tasks.tasks -p ${DRAMATIQ_PROCESSES} -t ${DRAMATIQ_THREADS}
+    depends_on:
+      - rabbitmq
+      - db
+    volumes:
+      - dramatiq_volume:/code/dramatiq_tasks
+    env_file:
+      - .env.prod
+      - .env.prod.db
+  scheduler:
+    build: ./dramatiq
+    restart: always
+    command: python -m dramatiq_tasks.tasks
+    depends_on:
+      - dramatiq
+    volumes:
+      - dramatiq_volume:/code/dramatiq_tasks
+    env_file:
+      - .env.prod
+      - .env.prod.db
   db:
     image: postgres:14
     restart: always
@@ -59,28 +59,8 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - .env.prod.db
-  celery:
-    build: ./celery
-    restart: always
-    command: celery -A celery_main worker --uid=celery --concurrency=${CELERY_CONCURENCY} -l INFO
-    depends_on:
-      - rabbitmq
-      - db
-    volumes:
-      - celery_volume:/code/celery_main
-    env_file:
-      - .env.prod
-      - .env.prod.db
-  celery-beat:
-    build: ./celery
-    restart: always
-    command: celery -A celery_main beat -l INFO
-    depends_on:
-      - celery
-    volumes:
-      - celery_volume:/code/celery_main
 
 volumes:
-  celery_volume:
+  dramatiq_volume:
   aiohttp_volume:
   postgres_data:
