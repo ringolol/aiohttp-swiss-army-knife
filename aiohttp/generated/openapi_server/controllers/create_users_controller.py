@@ -18,9 +18,11 @@ async def create_users(request: web.Request, body) -> web.Response:
     :type body: dict | bytes
 
     """
-    async with request.config_dict['pool'].acquire() as conn:
+    async with request.config_dict["pool"].acquire() as conn:
         conn: asyncpg.Connection
-        num = await conn.fetchval('select 5')
+        num = await conn.fetchval("select 5")
     body = UsersRequest.from_dict(body)
     tasks.add.send(2, 3)
-    return web.json_response(status=200, data=UsersResponse(name=body.username + str(num)).to_dict())
+    return web.json_response(
+        status=200, data=UsersResponse(name=body.username + str(num)).to_dict()
+    )

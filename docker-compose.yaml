@@ -59,6 +59,13 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - .env.prod.db
+  migrate:
+    build: ./db_migrate
+    restart: on-failure
+    env_file:
+      - .env.prod.db
+    depends_on:
+      - db
 
 volumes:
   dramatiq_volume:

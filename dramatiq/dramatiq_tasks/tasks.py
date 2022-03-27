@@ -24,7 +24,7 @@ def add(*args, **kwargs):
 
 
 if __name__ == "__main__":
-    print('starting scheduler')
+    print("starting scheduler")
     scheduler = BlockingScheduler(timezone=utc)
     scheduler.add_job(
         ping.send,
@@ -33,6 +33,6 @@ if __name__ == "__main__":
     try:
         scheduler.start()
     except Exception as exc:
-        print(f'scheduler error \n{exc}')
+        print(f"scheduler error \n{exc}")
     finally:
-        print('stopping scheduler')
+        print("stopping scheduler")
